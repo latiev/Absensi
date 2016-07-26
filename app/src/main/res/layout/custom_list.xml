@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:ignore="MissingPrefix">
+
+    <TextView
+        android:id="@+id/tv_cl_number"
+        fontPath="@string/lato_reg"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_margin="10dp"
+        android:background="@drawable/circle_grey"
+        android:gravity="center"
+        android:text="23:59"
+        android:textColor="@android:color/white"/>
+
+    <TextView
+        android:id="@+id/tv_cl_title"
+        fontPath="@string/lato_reg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="5dp"
+        android:layout_toEndOf="@+id/tv_cl_number"
+        android:layout_toRightOf="@+id/tv_cl_number"
+        android:singleLine="true"
+        android:text="Apakah mesin bisa hidup ?" />
+
+    <TextView
+        android:id="@+id/tv_cl_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/tv_cl_title"
+        android:layout_alignStart="@+id/tv_cl_title"
+        android:layout_below="@+id/tv_cl_title"
+        android:layout_marginRight="15dp"
+        android:maxLines="2"
+        android:text="Tidak"
+        android:textColor="@color/colorBlue" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorAbu"
+        android:layout_alignRight="@+id/tv_cl_content"
+        android:layout_alignEnd="@+id/tv_cl_content"
+        android:layout_below="@+id/tv_cl_number"
+        android:layout_alignLeft="@+id/tv_cl_content"
+        android:layout_alignStart="@+id/tv_cl_content" />
+
+</RelativeLayout>
