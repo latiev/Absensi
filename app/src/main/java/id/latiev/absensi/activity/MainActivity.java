@@ -58,12 +58,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     // set preferences
     private SharedPreferences preferencesUser;
-    private SharedPreferences preferenceSettingURL;
+    private SharedPreferences preferencesURLServer;
     public static SharedPreferences preferencesAbsensi;
     public static String PREF_ABSENSI = "absensiPreference";
-    private String PREF_SETTING_URL = "settingURLPreference";
     public static String KEY_ID = "id";
-    private String KEY_URL = "url";
 
     // set variabel
     private List<Kegiatan> kegiatanList;
@@ -88,8 +86,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setSupportActionBar(toolbar);
 
         preferencesUser = getSharedPreferences(SplashScreen.PREF_USER, MODE_PRIVATE);
+        preferencesURLServer = getSharedPreferences(LoginActivity.PREF_URL_SERVER, MODE_PRIVATE);
         preferencesAbsensi = getSharedPreferences(PREF_ABSENSI, MODE_PRIVATE);
-        preferenceSettingURL = getSharedPreferences(PREF_SETTING_URL, MODE_PRIVATE);
+
+        urlServer = preferencesURLServer.getString(LoginActivity.KEY_URL, "");
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -182,17 +182,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
         });
-
-        if (preferenceSettingURL.contains(KEY_URL)) {
-            urlServer = preferenceSettingURL.getString(KEY_URL, "");
-        } else {
-            Toast.makeText(MainActivity.this, "URL Server belum diatur", Toast.LENGTH_SHORT).show();
-        }
     }
 
     private void postAbsenMasuk(final String idUser) {
         RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
-        String url = "http://" + urlServer + "/absensi/api/datasources/presensi";
+        String url = "http://" + urlServer + "/api/datasources/presensi";
         StringRequest request = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -232,7 +226,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void postAbsenPulang(final String id, final String idUser) {
         RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
-        String url = "http://" + urlServer + "/absensi/api/datasources/presensi";
+        String url = "http://" + urlServer + "/api/datasources/presensi";
         StringRequest request = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -271,7 +265,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void postAktifitas(final String id, final String idUser, final String idPresensi, final String kegiatan, final String keterangan) {
         RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
-        String url = "http://" + urlServer + "/absensi/api/datasources/aktifitas";
+        String url = "http://" + urlServer + "/api/datasources/aktifitas";
         StringRequest request = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -308,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void postPermintaan(final String id, final String idUser, final String idPresensi, final String permintaan, final String keterangan) {
-        String url = "http://" + urlServer + "/absensi/api/datasources/permintaan";
+        String url = "http://" + urlServer + "/api/datasources/permintaan";
         RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
         StringRequest request = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
             @Override
@@ -346,7 +340,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void getAbsensi(final String id) {
-        String url = "http://" + urlServer + "/absensi/api/datasources/presensi?id=" + id;
+        String url = "http://" + urlServer + "/api/datasources/presensi?id=" + id;
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
@@ -384,7 +378,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void getAktifitas(String idPresensi) {
-        String url = "http://" + urlServer + "/absensi/api/datasources/aktifitas_list_by_id_presensi?id_presensi=" + idPresensi;
+        String url = "http://" + urlServer + "/api/datasources/aktifitas_list_by_id_presensi?id_presensi=" + idPresensi;
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
@@ -415,7 +409,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void getPermintaan(String idPresensi) {
-        String url = "http://" + urlServer + "/absensi/api/datasources/permintaan_list_by_id_presensi?id_presensi=" + idPresensi;
+        String url = "http://" + urlServer + "/api/datasources/permintaan_list_by_id_presensi?id_presensi=" + idPresensi;
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
@@ -554,7 +548,40 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            callDialogSetting();
+            LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
+            View viewDialogSetting = inflater.inflate(R.layout.dialog_setting, null);
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setView(viewDialogSetting);
+
+            final TextInputLayout tilSetting = (TextInputLayout) viewDialogSetting.findViewById(R.id.til_ds_setting);
+            final EditText editTextSetting = (EditText) viewDialogSetting.findViewById(R.id.et_ds_setting);
+
+            editTextSetting.setText(urlServer);
+
+            builder.setCancelable(false).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    if (editTextSetting.getText().toString().equalsIgnoreCase("")){
+                        tilSetting.setError("URL Server harus diisi");
+                        requestFocus(tilSetting);
+                    } else {
+                        tilSetting.setErrorEnabled(false);
+                        SharedPreferences.Editor editor = preferencesURLServer.edit();
+                        editor.putString(LoginActivity.KEY_URL, editTextSetting.getText().toString());
+                        editor.commit();
+
+                        dialog.dismiss();
+                    }
+                    Toast.makeText(MainActivity.this, "Berhasil mengatur URL Server", Toast.LENGTH_SHORT).show();
+                }
+            }).setNegativeButton("Batal", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
             return true;
         }
 
@@ -601,52 +628,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 getAbsensi(preferencesAbsensi.getString(KEY_ID, ""));
             }
         }
-    }
-
-    private void callDialogSetting() {
-        LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
-        View viewDialogSetting = inflater.inflate(R.layout.dialog_setting, null);
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setView(viewDialogSetting);
-
-        final TextInputLayout tilSetting = (TextInputLayout) viewDialogSetting.findViewById(R.id.til_ds_setting);
-        final EditText editTextSetting = (EditText) viewDialogSetting.findViewById(R.id.et_ds_setting);
-
-        if (preferenceSettingURL.contains(KEY_URL)) {
-            String isi = preferenceSettingURL.getString(KEY_URL, "");
-            if (!isi.equalsIgnoreCase("")) {
-                editTextSetting.setText(isi);
-            }
-        } else {
-            SharedPreferences.Editor editor = preferenceSettingURL.edit();
-            editor.putString(KEY_URL, "");
-            editor.commit();
-        }
-
-        builder.setCancelable(false).setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                if (editTextSetting.getText().toString().equalsIgnoreCase("")) {
-                    tilSetting.setError("URL Server harus diisi");
-                    requestFocus(tilSetting);
-                } else {
-                    tilSetting.setErrorEnabled(false);
-                    SharedPreferences.Editor editor = preferenceSettingURL.edit();
-                    editor.putString(KEY_URL, editTextSetting.getText().toString());
-                    editor.commit();
-
-                    dialogInterface.dismiss();
-                }
-                Toast.makeText(MainActivity.this, "Berhasil mengatur URL Server", Toast.LENGTH_SHORT).show();
-            }
-        }).setNegativeButton("Batal", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.cancel();
-            }
-        });
-        AlertDialog alertDialog = builder.create();
-        alertDialog.show();
     }
 
     private void requestFocus(View view) {

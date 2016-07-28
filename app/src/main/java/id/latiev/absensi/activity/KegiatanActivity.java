@@ -41,6 +41,7 @@ public class KegiatanActivity extends AppCompatActivity {
 
     // set variabel
     private List<Kegiatan> kegiatanList;
+    String urlServer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +58,7 @@ public class KegiatanActivity extends AppCompatActivity {
         });
 
         initCollapsingToolbar();
+        urlServer = LoginActivity.preferencesURLServer.getString(LoginActivity.KEY_URL, "");
 
         recyclerView = (RecyclerView) findViewById(R.id.rv_kegiatan);
         kegiatanList = new ArrayList<>();
@@ -97,15 +99,15 @@ public class KegiatanActivity extends AppCompatActivity {
         });
     }
 
-    private void getKegiatan(String idPresensi){
-        String url = "http://10.0.2.2/absensi/api/datasources/aktifitas_list_by_id_presensi?id_presensi=" + idPresensi;
+    private void getKegiatan(String idPresensi) {
+        String url = "http://" + urlServer + "/api/datasources/aktifitas_list_by_id_presensi?id_presensi=" + idPresensi;
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 try {
                     JSONArray datas = response.getJSONArray("data");
-                    if (datas.length() > 0){
-                        for (int i = 0; i < datas.length(); i++){
+                    if (datas.length() > 0) {
+                        for (int i = 0; i < datas.length(); i++) {
                             JSONObject data = datas.getJSONObject(i);
                             kegiatanList.add(new Kegiatan(splitTime(data.getString("waktu")), data.getString("kegiatan"), data.getString("keterangan")));
                         }

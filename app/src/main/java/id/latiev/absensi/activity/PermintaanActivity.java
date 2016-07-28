@@ -1,5 +1,6 @@
 package id.latiev.absensi.activity;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -40,6 +41,7 @@ public class PermintaanActivity extends AppCompatActivity {
 
     // set variabel
     private List<Kegiatan> kegiatanList;
+    private String urlServer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +58,7 @@ public class PermintaanActivity extends AppCompatActivity {
         });
 
         initCollapsingToolbar();
+        urlServer = LoginActivity.preferencesURLServer.getString(LoginActivity.KEY_URL, "");
 
         recyclerView = (RecyclerView) findViewById(R.id.rv_permintaan);
         kegiatanList = new ArrayList<>();
@@ -96,15 +99,15 @@ public class PermintaanActivity extends AppCompatActivity {
         });
     }
 
-    private void getPermintaan(String idPresensi){
-        String url = "http://10.0.2.2/absensi/api/datasources/permintaan_list_by_id_presensi?id_presensi=" + idPresensi;
+    private void getPermintaan(String idPresensi) {
+        String url = "http://" + urlServer + "/api/datasources/permintaan_list_by_id_presensi?id_presensi=" + idPresensi;
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 try {
                     JSONArray datas = response.getJSONArray("data");
-                    if (datas.length() > 0){
-                        for (int i = 0; i < datas.length(); i++){
+                    if (datas.length() > 0) {
+                        for (int i = 0; i < datas.length(); i++) {
                             JSONObject data = datas.getJSONObject(i);
                             kegiatanList.add(new Kegiatan(splitTime(data.getString("waktu")), data.getString("permintaan"), data.getString("keterangan")));
                         }

@@ -1,11 +1,16 @@
 package id.latiev.absensi.activity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.support.design.widget.TextInputLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -37,10 +42,13 @@ public class LoginActivity extends AppCompatActivity {
 
     // set display
     private EditText editTextUsername, editTextPassword;
-    private Button buttonLogin, buttonRegister;
+    private Button buttonLogin, buttonSetupServer;
 
     // sharedpreferences
     private SharedPreferences preferences;
+    public static SharedPreferences preferencesURLServer;
+    public static String PREF_URL_SERVER = "PrefURL";
+    public static String KEY_URL = "url";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,19 +58,82 @@ public class LoginActivity extends AppCompatActivity {
         editTextUsername = (EditText) findViewById(R.id.et_al_username);
         editTextPassword = (EditText) findViewById(R.id.et_al_password);
         buttonLogin = (Button) findViewById(R.id.btn_al_login);
-        buttonRegister = (Button) findViewById(R.id.btn_al_register);
+        buttonSetupServer = (Button) findViewById(R.id.btn_al_setup_server);
+
+        preferencesURLServer = getSharedPreferences(PREF_URL_SERVER, MODE_PRIVATE);
 
         buttonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getDataUser(editTextUsername.getText().toString(), computeMD5Hash(editTextPassword.getText().toString()));
+                if (preferencesURLServer.contains(KEY_URL)){
+                    if (preferencesURLServer.getString(KEY_URL, "").equalsIgnoreCase("")){
+                        Toast.makeText(LoginActivity.this, "URL Server belum di setting", Toast.LENGTH_SHORT).show();
+                    } else {
+                        getDataUser(editTextUsername.getText().toString(), computeMD5Hash(editTextPassword.getText().toString()), preferencesURLServer.getString(KEY_URL, ""));
+                    }
+                }
+            }
+        });
+
+        buttonSetupServer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LayoutInflater inflater = LayoutInflater.from(LoginActivity.this);
+                View viewDialogSetting = inflater.inflate(R.layout.dialog_setting, null);
+                AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
+                builder.setView(viewDialogSetting);
+
+                final TextInputLayout tilSetting = (TextInputLayout) viewDialogSetting.findViewById(R.id.til_ds_setting);
+                final EditText editTextSetting = (EditText) viewDialogSetting.findViewById(R.id.et_ds_setting);
+
+                if (preferencesURLServer.contains(KEY_URL)) {
+                    String isi = preferencesURLServer.getString(KEY_URL, "");
+                    if (!isi.equalsIgnoreCase("")) {
+                        editTextSetting.setText(isi);
+                    }
+                } else {
+                    SharedPreferences.Editor editor = preferencesURLServer.edit();
+                    editor.putString(KEY_URL, "");
+                    editor.commit();
+                }
+
+                builder.setCancelable(false).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        if (editTextSetting.getText().toString().equalsIgnoreCase("")) {
+                            tilSetting.setError("URL Server harus diisi");
+                            requestFocus(tilSetting);
+                        } else {
+                            tilSetting.setErrorEnabled(false);
+                            SharedPreferences.Editor editor = preferencesURLServer.edit();
+                            editor.putString(KEY_URL, editTextSetting.getText().toString());
+                            editor.commit();
+
+                            dialogInterface.dismiss();
+                        }
+                        Toast.makeText(LoginActivity.this, "Berhasil mengatur URL Server", Toast.LENGTH_SHORT).show();
+                    }
+                }).setNegativeButton("Batal", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.cancel();
+                    }
+                });
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
             }
         });
     }
 
-    private void getDataUser(final String username, final String password) {
+    private void requestFocus(View view) {
+        if (view.requestFocus()) {
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        }
+    }
+
+    private void getDataUser(final String username, final String password, String server) {
         RequestQueue queue = Volley.newRequestQueue(LoginActivity.this);
-        String url = "http://10.0.2.2/absensi/api/datasources/login";
+        String url = "http://" + server + "/api/datasources/login";
         StringRequest request = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {

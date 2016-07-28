@@ -53,13 +53,13 @@
             android:textColor="@color/btn_login" />
 
         <Button
-            android:id="@+id/btn_al_register"
+            android:id="@+id/btn_al_setup_server"
             fontPath="@string/lato_reg"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="40dip"
             android:background="@null"
-            android:text="Not a member? Sign up now."
+            android:text="Tidak bisa login? Setup server dulu gan."
             android:textAllCaps="false"
             android:textColor="@color/white"
             android:textSize="15dp" />
